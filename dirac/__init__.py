@@ -117,11 +117,13 @@ class KubernetesComm():
             self.clear()
 
             self.writer.delete_all_with_label("k8s-comm")
+            self.writer.append(f"<p>Updated at: {datetime.datetime.now()}</p>", "k8s-comm")
             for phase, events in messages.items():
-                self.writer.append("<h3>" + phase + "</h3>", "k8s-comm")
-                for pod, event in events.items():
-                    self.writer.append("<h4>" + pod + "</h4>", "k8s-comm")
-                    self.writer.append("<p>" + event + "</p>", "k8s-comm")
+                if len(events) != 0:
+                    self.writer.append("<h3>" + phase + "</h3>", "k8s-comm")
+                    for pod, event in events.items():
+                        self.writer.append("<h4 style='padding-left: 10px;'>" + pod + "</h4>", "k8s-comm")
+                        self.writer.append("<p style='padding-left: 20px;'>" + event + "</p>", "k8s-comm")
             
             self.writer.update()
             
@@ -206,6 +208,7 @@ class DataBase():
         self.init_conf(conf)
         self.init_kubecomm(pod_name=self.executor_prefix, writer=self.writer)
         
+        self.writer.update()
         self.writer.append("<h2>Creating SparkSession</h2>", "dirac-start-status")
         self.writer.update()
         
@@ -216,6 +219,9 @@ class DataBase():
             _spark_session = _spark_session.config(str(key), str(value))
         self.spark_session = _spark_session
 
+        self.writer.append(f"<h3> Spark Cluster Dashboard: <a href={self.get_spark_url()}>{self.get_spark_url()}</a></h3>", "dirac-start-link")
+        self.writer.update()
+
         self.writer.append("<h2>Spark Cluster Status</h2>", "dirac-start-status")
         self.writer.update()
         k8s_poll_thread = Thread(target=self.kc.poll)
@@ -223,20 +229,18 @@ class DataBase():
         
         self.spark_session = _spark_session.enableHiveSupport().getOrCreate()
         
-        self.writer.append("<p>Stopping k8s polling</p>", "dirac-start-status")
+        self.writer.append("<p>Spark Cluster Created!</p>", "dirac-start-status")
         self.writer.update()
         self.kc.keep_polling = False
+        k8s_poll_thread.join()
         
         self.spark_context = self.spark_session.sparkContext
         
-        self.writer.append("<h2>AXS Catalogs</h2>", "dirac-start-status")
+        self.writer.append("<h2>Loading AXS Catalogs</h2>", "dirac-start-status")
         self.catalogs = axs.AxsCatalog(self.spark_session)
         self.writer.update()
         self.init_catalogs()
-        
-        self.writer.append(f"<p> Spark Cluster Dashboard: <a href={self.get_spark_url()}>{self.get_spark_url()}</a></p>", "dirac-start-link")
-        self.writer.update()
-    
+            
     def stop(self):
         if self.spark_session:
             self.spark_session.stop()

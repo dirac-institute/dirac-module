@@ -285,6 +285,6 @@ class DataBase():
             self.writer.append("<p>AXS catalog not instantiated.</p>", "dirac-get-catalogs-status")
             return None
 
-def start():
-    return DataBase()
+def start(conf=None):
+    return DataBase(conf=conf)
 

@@ -121,10 +121,21 @@ class KubernetesComm():
             for phase, events in messages.items():
                 if len(events) != 0:
                     self.writer.append("<h3>" + phase + "</h3>", "k8s-comm")
+                    self.writer.append("<table>", "k8s-comm")
+
+                    self.writer.append("<tr>", "k8s-comm")
+                    self.writer.append("<th>Pod Name</th>", "k8s-comm")
+                    self.writer.append("<th>Status</th>", "k8s-comm")
+                    self.writer.append("</tr>", "k8s-comm")
+
                     for pod, event in events.items():
-                        self.writer.append("<h4 style='padding-left: 10px;'>" + pod + "</h4>", "k8s-comm")
-                        self.writer.append("<p style='padding-left: 20px;'>" + event + "</p>", "k8s-comm")
-            
+                        self.writer.append("<tr style='overflow-x: scroll;'>", "k8s-comm")
+                        self.writer.append("<td><strong>" + pod + "</strong></td>", "k8s-comm")
+                        self.writer.append("<td>" + event + "</td>", "k8s-comm")
+                        self.writer.append("</tr>", "k8s-comm")
+
+                    self.writer.append("</table>", "k8s-comm")
+
             self.writer.update()
             
             time.sleep(self.time_sleep)
@@ -162,7 +173,7 @@ class DataBase():
     
     dirac_conf = {}
     
-    dirac_catalogs = ["allwise", "gaiadr2", "sdss"]
+    dirac_catalogs = ["allwise", "gaiadr2", "sdss", "cesium-speedtest-ztfsample"]
 
     def init_conf(self, user_conf):
         self.dirac_conf['spark.executor.instances'] = 2
@@ -229,10 +240,10 @@ class DataBase():
         
         self.spark_session = _spark_session.enableHiveSupport().getOrCreate()
         
-        self.writer.append("<p>Spark Cluster Created!</p>", "dirac-start-status")
         self.writer.update()
         self.kc.keep_polling = False
         k8s_poll_thread.join()
+        self.writer.append("<p>Spark Cluster Created!</p>", "dirac-start-status")
         
         self.spark_context = self.spark_session.sparkContext
         

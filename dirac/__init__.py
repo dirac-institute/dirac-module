@@ -173,7 +173,12 @@ class DataBase():
     
     dirac_conf = {}
     
-    dirac_catalogs = ["allwise", "gaiadr2", "sdss", "cesium-speedtest-ztfsample"]
+    dirac_catalogs = { "allwise" : "allwise", 
+                      "gaiadr2" : "gaiadr2", 
+                      "sdss" : "sdss", 
+                      "ztfsample" : "cesium-speedtest-ztfsample",
+                      "ztf_mar19" : "ztf_mar19"
+                     }
 
     def init_conf(self, user_conf):
         self.dirac_conf['spark.executor.instances'] = 2
@@ -193,7 +198,7 @@ class DataBase():
     def init_catalogs(self):
         if (self.catalogs):
             current_tables = self.catalogs.list_tables()
-            for catalog_name in self.dirac_catalogs:
+            for catalog_name, catalog_path in self.dirac_catalogs.items():
                 try:
                     current_tables[catalog_name]
                     self.writer.append("<p>Found " + catalog_name + " in AXS catalogs.</p>", "dirac-status")
@@ -202,7 +207,7 @@ class DataBase():
                     self.writer.append("<p>Adding " + catalog_name + " to AXS catalogs...</p>", "dirac-status")
                     self.writer.update()
                     try:
-                        self.catalogs.import_existing_table(catalog_name, f's3a://axscatalog/{catalog_name}', num_buckets=500,
+                        self.catalogs.import_existing_table(catalog_name, f's3a://axscatalog/{catalog_path}', num_buckets=500,
                                                             zone_height=Constants.ONE_AMIN, import_into_spark=True)
                     except AttributeError as axs_e:
                         self.writer.append("<p>" + str(axs_e) + "</p>", "dirac-status")

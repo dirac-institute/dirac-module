@@ -212,8 +212,9 @@ class DataBase():
         
         try:
             username = os.environ["NB_USER"]
+            username_lower = username.lower()
             time = int((datetime.datetime.now() - datetime.datetime(1970, 1, 1)).total_seconds())
-            self.executor_prefix = f"pyspark-{time}-{username}-spark"
+            self.executor_prefix = f"pyspark-{time}-{username_lower}-spark"
             self.dirac_conf['spark.kubernetes.executor.podNamePrefix'] = self.executor_prefix
         except Exception as e:
             print(e)

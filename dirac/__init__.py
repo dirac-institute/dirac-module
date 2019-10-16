@@ -204,7 +204,7 @@ class DataBase():
                       "gaiadr2" : "gaiadr2", 
                       "sdss" : "sdss", 
                       "ztfsample" : "cesium-speedtest-ztfsample",
-                      "ztf_mar19" : "ztf_mar19"
+                      "ztf" : "ztfmf1"
                      }
 
     def init_conf(self, user_conf):

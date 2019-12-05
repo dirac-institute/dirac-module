@@ -323,7 +323,7 @@ class DataBase():
             return None
         
     def get_spark_url(self):
-        protocol = "https://"
+        protocol = "http://"
         try:
             url = os.environ["SPARK_PUBLIC_DNS"]
         except:

@@ -368,7 +368,7 @@ class DataBase():
         
         port = self.port
         try:
-            url = f"{protocol}{os.environ['PUBLIC_URL']}/user/{username}/proxy/{port}/jobs/"
+            url = f"{os.environ['PUBLIC_URL']}/user/{username}/proxy/{port}/jobs/"
         except:
             url = f"localhost:{port}/jobs/"
             

@@ -297,8 +297,8 @@ class DataBase():
 
         # time.sleep(1)
         # self.writer.delete_all_with_label("catalog-update")
-        self.writer.append("<p><strong>Status:</strong> DataBase initialized!</p>", "dirac-start-status")
-        self.writer.update()
+        # self.writer.append("<p><strong>Status:</strong> DataBase initialized!</p>", "dirac-start-status")
+        # self.writer.update()
 
             
     def stop(self):
@@ -324,10 +324,18 @@ class DataBase():
         
     def get_spark_url(self):
         protocol = "http://"
+
         try:
-            url = os.environ["SPARK_PUBLIC_DNS"]
+            username = os.environ["NB_USER"]
         except:
-            url = "localhost:4040/jobs/"
+            username = "jovyan"
+        
+        sc = self.get_spark_context()
+        port = sc.uiWebUrl.split(":")[-1]
+        try:
+            url = f"{protocol}{os.environ['PUBLIC_URL']}/user/{username}/proxy/{port}/jobs/"
+        except:
+            url = f"localhost:{port}/jobs/"
             
         return protocol + url
     

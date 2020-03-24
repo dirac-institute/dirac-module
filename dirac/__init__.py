@@ -293,7 +293,7 @@ class DataBase():
         self.writer.append("<p><strong>Status:</strong> Loading AXS catalogs</p>", "catalog-update")
         self.catalogs = axs.AxsCatalog(self.spark_session)
         self.writer.update()
-        self.init_catalogs()
+        # self.init_catalogs()
 
         # time.sleep(1)
         # self.writer.delete_all_with_label("catalog-update")

@@ -119,7 +119,7 @@ class KubernetesComm():
                 }
             except Exception as e:
                 # self.clear()
-                self.writer("<p>Error getting Kubernetes Cluster events!</p><p>" + str(e) + "</p>", "k8s-comm")
+                self.writer.append("<p>Error getting Kubernetes Cluster events!</p><p>" + str(e) + "</p>", "k8s-comm")
                 self.writer.update()
 
                 time.sleep(self.time_sleep)
@@ -200,12 +200,44 @@ class DataBase():
     
     dirac_conf = {}
     
-    dirac_catalogs = { "allwise" : "allwise", 
-                      "gaiadr2" : "gaiadr2", 
-                      "sdss" : "sdss", 
-                      "ztfsample" : "cesium-speedtest-ztfsample",
-                      "ztf" : "ztfmf1"
-                     }
+    dirac_catalogs = { 
+        "allwise" : "allwise", 
+        "gaiadr2" : "gaiadr2", 
+        "sdss" : "sdss", 
+        "ztfsample" : "cesium-speedtest-ztfsample",
+        "ztf" : "ztfmf1"
+    }
+
+    def get_port(self):
+        if 'spark.ui.port' in self.dirac_conf.keys():
+            port = self.dirac_conf['spark.ui.port']
+            self.port = port
+            return port
+
+        import socket
+        start_port = 4040
+        max_port = 65535
+        try_port = start_port
+        port = None
+
+        a_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        while try_port < 65535:    
+            location = ("127.0.0.1", try_port)
+            result_of_check = a_socket.connect_ex(location)
+            port_available = result_of_check != 0
+            a_socket.close()
+
+            if port_available:
+                port = try_port
+                break
+            try_port += 1
+        
+        if not port:
+            self.writer.append(f"<p>Error:  Cannot bind to any port  in range {start_port}-{max_port}!</p>", "get-port")
+        
+        self.port = port
+
+        return port
 
     def init_conf(self, user_conf):
         self.dirac_conf['spark.executor.instances'] = 2
@@ -218,6 +250,10 @@ class DataBase():
             self.dirac_conf['spark.kubernetes.executor.podNamePrefix'] = self.executor_prefix
         except Exception as e:
             print(e)
+
+        port = self.get_port()
+        if port:
+            self.dirac_conf['spark.ui.port'] = port
 
         if user_conf:
             for key, value in user_conf.items():
@@ -330,8 +366,7 @@ class DataBase():
         except:
             username = "jovyan"
         
-        sc = self.get_spark_context()
-        port = sc.uiWebUrl.split(":")[-1]
+        port = self.port
         try:
             url = f"{protocol}{os.environ['PUBLIC_URL']}/user/{username}/proxy/{port}/jobs/"
         except:
